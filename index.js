@@ -95,9 +95,17 @@ export async function getCurrentParticipants() {
 
 export async function onNewMessage(mesId) {
 	if (!isActive()) return;
+	if (!Number.isInteger(mesId) || mesId < 0) {
+		console.debug("Ignoring onNewMessage with invalid mesId:", mesId);
+		return;
+	}
 
 	/** @type {ChatMessageExtended} */
 	const mes = chat[mesId];
+	if (!mes) {
+		console.debug("Ignoring onNewMessage for missing message:", mesId);
+		return;
+	}
     const participants = await getCurrentParticipants();
 
     if (this_chid !== undefined) {
@@ -110,14 +118,21 @@ export async function onNewMessage(mesId) {
         mes.present = [...participants.present];
     }
 
-	if(extensionSettings.seeLast && !mes.is_user) {
+	if(extensionSettings.seeLast && !mes.is_user && mesId > 0) {
 		/** @type {ChatMessageExtended} */
 		const prevMes = chat[mesId - 1];
+		const avatar = typeof mes.original_avatar === "string" ? mes.original_avatar : "";
+
+		if (!prevMes || !avatar) {
+			console.debug("Skipping seeLast propagation for message:", mesId, { hasPrev: Boolean(prevMes), avatar: mes.original_avatar });
+			await saveChatDebounced();
+			return;
+		}
 
 		if(!prevMes.present) prevMes.present = [];
 
-		if(!prevMes.present.includes(mes.original_avatar)){
-			prevMes.present.push(mes.original_avatar);
+		if(!prevMes.present.includes(avatar)){
+			prevMes.present.push(avatar);
 		}
 	}
 
