@@ -96,14 +96,14 @@ export async function getCurrentParticipants() {
 export async function onNewMessage(mesId) {
 	if (!isActive()) return;
 	if (!Number.isInteger(mesId) || mesId < 0) {
-		debug("Ignoring onNewMessage with invalid mesId:", mesId);
+		console.debug("Ignoring onNewMessage with invalid mesId:", mesId);
 		return;
 	}
 
 	/** @type {ChatMessageExtended} */
 	const mes = chat[mesId];
 	if (!mes) {
-		debug("Ignoring onNewMessage for missing message:", mesId);
+		console.debug("Ignoring onNewMessage for missing message:", mesId);
 		return;
 	}
     const participants = await getCurrentParticipants();
@@ -124,7 +124,7 @@ export async function onNewMessage(mesId) {
 		const avatar = typeof mes.original_avatar === "string" ? mes.original_avatar : "";
 
 		if (!prevMes || !avatar) {
-			debug("Skipping seeLast propagation for message:", mesId, { hasPrev: Boolean(prevMes), avatar: mes.original_avatar });
+			console.debug("Skipping seeLast propagation for message:", mesId, { hasPrev: Boolean(prevMes), avatar: mes.original_avatar });
 			await saveChatDebounced();
 			return;
 		}
